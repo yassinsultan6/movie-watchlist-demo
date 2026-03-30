@@ -6,20 +6,12 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -42,16 +34,18 @@ const RegisterPage = () => {
         err?.message ||
         'Failed to register. Please try again.';
       setError(backendMessage);
-      console.error('Register error:', err?.response?.data || err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="form-container">
+    <div className="form-container form-animate">
       <form onSubmit={handleSubmit}>
         <h1>Register</h1>
+        <p className="page-subtitle" style={{ textAlign: 'center' }}>
+          Join and start building your movie list
+        </p>
 
         {error && (
           <p style={{ color: 'var(--error-color)', textAlign: 'center', marginBottom: '1rem' }}>

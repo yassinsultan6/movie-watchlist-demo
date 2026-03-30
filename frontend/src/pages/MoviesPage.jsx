@@ -10,10 +10,12 @@ const MoviesPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
+  const [watchlistIds, setWatchlistIds] = useState([]);
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     fetchMovies();
+    fetchWatchlistIds();
   }, []);
 
   const fetchMovies = async () => {
@@ -25,6 +27,17 @@ const MoviesPage = () => {
       showNotification('Failed to fetch movies.', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWatchlistIds = async () => {
+    try {
+      const data = await movieService.getWatchlist();
+      const watchlist = Array.isArray(data) ? data : data.watchlist || [];
+      const ids = watchlist.map((movie) => movie._id);
+      setWatchlistIds(ids);
+    } catch (err) {
+      // keep movies loaded even if watchlist fails
     }
   };
 
@@ -60,8 +73,16 @@ const MoviesPage = () => {
   };
 
   const handleAddToWatchlist = async (movieId) => {
+    if (watchlistIds.includes(movieId)) {
+      showNotification('This movie is already in your watchlist.', 'info');
+      return;
+    }
+
     try {
-      await movieService.addMovieToWatchlist(movieId);
+      const data = await movieService.addMovieToWatchlist(movieId);
+      const updatedWatchlist = Array.isArray(data) ? data : data.watchlist || [];
+      const ids = updatedWatchlist.map((movie) => movie._id);
+      setWatchlistIds(ids);
       showNotification('Movie added to your watchlist!', 'success');
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to add to watchlist.';
@@ -104,6 +125,7 @@ const MoviesPage = () => {
             onEdit={handleEditClick}
             onDelete={handleDelete}
             onAddToWatchlist={handleAddToWatchlist}
+            isInWatchlist={watchlistIds.includes(movie._id)}
           />
         ))}
       </div>

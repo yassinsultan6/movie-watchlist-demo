@@ -1,12 +1,19 @@
-/* General Reset & Base Styles */
 :root {
-  --primary-bg: #121212;
-  --secondary-bg: #1e1e1e;
-  --primary-text: #e0e0e0;
-  --accent-color: #bb86fc;
-  --accent-hover: #a050f0;
-  --border-color: #333;
-  --error-color: #cf6679;
+  --primary-bg: #0f1115;
+  --secondary-bg: #171a21;
+  --primary-text: #f2f2f2;
+  --muted-text: #b5b5b5;
+
+  /* Orange company colors */
+  --accent-color: #ff7900;
+  --accent-hover: #ff9a3d;
+  --accent-dark: #c85f00;
+
+  --success-color: #00c853;
+  --error-color: #ff5252;
+
+  --border-color: #2b2f38;
+  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -16,123 +23,282 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--primary-bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f8f9fb;;
   color: var(--primary-text);
   line-height: 1.6;
 }
 
-/* Layout */
+
+
+/* --- Layout --- */
 .container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
 
-/* Header */
+/* --- Navbar --- */
 .app-header {
-  background-color: var(--secondary-bg);
+  background: rgba(23, 26, 33, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-color);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .app-header .logo {
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 700;
   color: var(--accent-color);
   text-decoration: none;
 }
 
-.app-header nav a, .app-header nav button {
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-links a,
+.nav-links button {
   color: var(--primary-text);
   text-decoration: none;
-  margin-left: 1.5rem;
   font-size: 1rem;
   background: none;
   border: none;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.app-header nav a:hover, .app-header nav button:hover {
+.nav-links a:hover,
+.nav-links button:hover {
   color: var(--accent-color);
 }
 
-/* Forms */
+.menu-icon {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/* --- Responsive Navbar --- */
+@media (max-width: 768px) {
+  .menu-icon {
+    display: block;
+  }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--secondary-bg);
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color);
+  }
+  .nav-links.active {
+    display: flex;
+  }
+}
+
+/* --- Typography --- */
+
+h1, h2, h3 {
+  color: #1a1a1a;
+}
+
+.page-subtitle {
+  color: #5f6b7a;
+}
+
+
+/* --- Forms --- */
 .form-container {
-  max-width: 400px;
+  max-width: 450px;
   margin: 2rem auto;
   padding: 2rem;
   background-color: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
 }
-
-.form-container h1 {
+.form-container h1,
+.form-container h2 {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   color: var(--accent-color);
 }
-
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
 }
-
 .form-group input {
   width: 100%;
   padding: 0.8rem;
-  background-color: var(--primary-bg);
+  background-color: #0f1115;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--primary-text);
   font-size: 1rem;
 }
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
 
+/* --- Buttons --- */
 .btn {
-  display: block;
-  width: 100%;
-  padding: 0.8rem;
+  display: inline-block;
+  padding: 0.8rem 1.2rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   background-color: var(--accent-color);
   color: #000;
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  text-align: center;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease;
 }
-
 .btn:hover {
   background-color: var(--accent-hover);
+  transform: translateY(-2px);
+}
+.btn-outline {
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  background: transparent;
+}
+.btn-outline:hover {
+  background: var(--accent-color);
+  color: #000;
+}
+.btn-full-width {
+  width: 100%;
 }
 
-/* Movie Grid */
+/* --- Movie Grid & Cards --- */
 .movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
-
 .movie-card {
-    background-color: var(--secondary-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    text-align: center;
+  background: linear-gradient(180deg, #171a21, #14161c);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-
-.movie-card img {
-    width: 100%;
-    height: auto;
-    display: block;
+.movie-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
-
 .movie-card h3 {
-    padding: 1rem;
-    font-size: 1.1rem;
+  color: var(--accent-color);
+  margin-bottom: 0.5rem;
 }
+.movie-card p {
+  font-size: 0.9rem;
+  color: var(--muted-text);
+}
+
+/* --- Loading Spinner --- */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+}
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Notification System --- */
+.notification-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2000;
+}
+.notification {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  color: #000;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 300px;
+}
+.notification.success {
+  background-color: var(--success-color);
+}
+.notification.error {
+  background-color: var(--error-color);
+  color: var(--primary-text);
+}
+.notification-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--secondary-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+.welcome-text {
+  color: #5f6b7a; /* change to any color you want */
+}
+
+/* --- Animations --- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+
+  to { opacity: 1; transform: scale(1); }
+}
+
+.page-animate { animation: fadeIn 0.4s ease; }
+.card-animate { animation: fadeInUp 0.35s ease; }
+.form-animate { animation: scaleIn 0.35s ease; }

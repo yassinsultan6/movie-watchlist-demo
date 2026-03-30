@@ -16,7 +16,8 @@ const WatchlistPage = () => {
     try {
       setLoading(true);
       const data = await getWatchlist();
-      setWatchlist(data.watchlist || []);
+      const watchlist = Array.isArray(data) ? data : data.watchlist || [];
+      setWatchlist(watchlist);
     } catch (err) {
       showNotification('Failed to fetch watchlist.', 'error');
     } finally {
