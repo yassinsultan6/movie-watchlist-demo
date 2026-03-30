@@ -1,0 +1,15 @@
+# Ignore dependency directories
+backend/node_modules/
+frontend/node_modules/
+
+# Ignore environment files
+backend/.env
+frontend/.env
+.env
+
+# Ignore local git backup metadata
+backend/.git-backup/
+
+# Ignore OS and editor temporary files
+.DS_Store
+Thumbs.db
