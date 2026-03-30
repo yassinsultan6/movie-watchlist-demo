@@ -1,6 +1,7 @@
-import React, { useState, createContext } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import NotificationContext from './context/NotificationContext';
 
 import Header from './components/Header';
 import PrivateRoute from './components/PrivateRoute';
@@ -12,8 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import WatchlistPage from './pages/WatchlistPage';
 import MoviesPage from './pages/MoviesPage';
 
-// Create a context for the notification system
-export const NotificationContext = createContext(null);
+// Notification context is defined in a separate file
 
 function App() {
   const [notification, setNotification] = useState(null);

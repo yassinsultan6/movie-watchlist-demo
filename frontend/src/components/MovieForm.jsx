@@ -10,6 +10,7 @@ const MovieForm = ({ onSubmit, onCancel, initialData }) => {
 
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMovie({
         title: initialData.title || '',
         director: initialData.director || '',

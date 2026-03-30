@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import * as movieService from '../services/movieService';
-import { NotificationContext } from '../App';
+import NotificationContext from '../context/NotificationContext';
 import MovieCard from '../components/MovieCard';
 import MovieForm from '../components/MovieForm';
 import Spinner from '../components/Spinner';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const MoviesPage = () => {
   const [movies, setMovies] = useState([]);
@@ -11,35 +12,36 @@ const MoviesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
   const [watchlistIds, setWatchlistIds] = useState([]);
+  const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null });
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        const data = await movieService.getMovies();
+        setMovies(data);
+      } catch {
+        showNotification('Failed to fetch movies.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchWatchlistIds = async () => {
+      try {
+        const data = await movieService.getWatchlist();
+        const watchlist = Array.isArray(data) ? data : data.watchlist || [];
+        const ids = watchlist.map((movie) => movie._id);
+        setWatchlistIds(ids);
+      } catch {
+        // keep movies loaded even if watchlist fails
+      }
+    };
+
     fetchMovies();
     fetchWatchlistIds();
-  }, []);
-
-  const fetchMovies = async () => {
-    try {
-      setLoading(true);
-      const data = await movieService.getMovies();
-      setMovies(data);
-    } catch (err) {
-      showNotification('Failed to fetch movies.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchWatchlistIds = async () => {
-    try {
-      const data = await movieService.getWatchlist();
-      const watchlist = Array.isArray(data) ? data : data.watchlist || [];
-      const ids = watchlist.map((movie) => movie._id);
-      setWatchlistIds(ids);
-    } catch (err) {
-      // keep movies loaded even if watchlist fails
-    }
-  };
+  }, [showNotification]);
 
   const handleFormSubmit = async (movieData) => {
     try {
@@ -60,16 +62,23 @@ const MoviesPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this movie?')) {
-      try {
-        await movieService.deleteMovie(id);
-        setMovies(movies.filter(m => m._id !== id));
-        showNotification('Movie deleted.', 'success');
-      } catch (err) {
-        showNotification('Failed to delete movie.', 'error');
-      }
-    }
+  const handleDelete = (id, title) => {
+    setConfirmConfig({
+      open: true,
+      title: 'Delete Movie',
+      message: `Are you sure you want to remove "${title}" from your movies?`,
+      onConfirm: async () => {
+        try {
+          await movieService.deleteMovie(id);
+          setMovies(movies.filter(m => m._id !== id));
+          showNotification('Movie deleted.', 'success');
+        } catch {
+          showNotification('Failed to delete movie.', 'error');
+        } finally {
+          setConfirmConfig((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
   };
 
   const handleAddToWatchlist = async (movieId) => {
@@ -123,12 +132,21 @@ const MoviesPage = () => {
             key={movie._id}
             movie={movie}
             onEdit={handleEditClick}
-            onDelete={handleDelete}
+            onDelete={() => handleDelete(movie._id, movie.title)}
             onAddToWatchlist={handleAddToWatchlist}
             isInWatchlist={watchlistIds.includes(movie._id)}
           />
         ))}
       </div>
+      <ConfirmationModal
+        open={confirmConfig.open}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmConfig.onConfirm}
+        onCancel={() => setConfirmConfig((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

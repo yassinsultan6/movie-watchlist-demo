@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Keep axios default header in sync with token
@@ -20,7 +19,6 @@ export const AuthProvider = ({ children }) => {
     } else {
       delete api.defaults.headers.common.Authorization;
     }
-    setLoading(false);
   }, [token]);
 
   const normalizeAuthResponse = (data) => {
@@ -42,7 +40,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const data = await loginUser(credentials);
-    console.log('LOGIN RESPONSE:', data);
 
     const { normalizedToken, normalizedUser } = normalizeAuthResponse(data);
 
@@ -59,7 +56,6 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     const data = await registerUser(userData);
-    console.log('REGISTER RESPONSE:', data);
 
     const { normalizedToken, normalizedUser } = normalizeAuthResponse(data);
 
@@ -93,7 +89,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
