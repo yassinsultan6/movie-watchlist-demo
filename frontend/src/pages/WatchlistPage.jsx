@@ -7,21 +7,21 @@ import ConfirmationModal from '../components/ConfirmationModal';
 
 const WatchlistPage = () => {
   const [watchlist, setWatchlist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null });
+  const [isLoading, setIsLoading] = useState(true);
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     const fetchWatchlist = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         const data = await getWatchlist();
         const watchlist = Array.isArray(data) ? data : data.watchlist || [];
         setWatchlist(watchlist);
       } catch {
         showNotification('Failed to fetch watchlist.', 'error');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -30,7 +30,7 @@ const WatchlistPage = () => {
 
   const handleRemove = (movieId, title) => {
     setConfirmConfig({
-      open: true,
+      isOpen: true,
       title: 'Remove from Watchlist',
       message: `Do you want to remove "${title}" from your watchlist?`,
       onConfirm: async () => {
@@ -41,13 +41,13 @@ const WatchlistPage = () => {
         } catch {
           showNotification('Failed to remove movie.', 'error');
         } finally {
-          setConfirmConfig((prev) => ({ ...prev, open: false }));
+          setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
         }
       },
     });
   };
 
-  if (loading) return <Spinner />;
+  if (isLoading) return <Spinner />;
 
   return (
     <div className="container">
@@ -78,13 +78,13 @@ const WatchlistPage = () => {
         </div>
       )}
       <ConfirmationModal
-        open={confirmConfig.open}
+        isOpen={confirmConfig.isOpen}
         title={confirmConfig.title}
         message={confirmConfig.message}
         confirmText="Remove"
         cancelText="Cancel"
         onConfirm={confirmConfig.onConfirm}
-        onCancel={() => setConfirmConfig((prev) => ({ ...prev, open: false }))}
+        onCancel={() => setConfirmConfig((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

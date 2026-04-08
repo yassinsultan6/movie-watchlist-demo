@@ -1,7 +1,7 @@
 import React from 'react';
 
-const ConfirmationModal = ({ open, title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel }) => {
-  if (!open) return null;
+const ConfirmationModal = ({ isOpen, title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel }) => {
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">

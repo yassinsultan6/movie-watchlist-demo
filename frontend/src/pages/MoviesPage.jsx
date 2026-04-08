@@ -8,23 +8,23 @@ import ConfirmationModal from '../components/ConfirmationModal';
 
 const MoviesPage = () => {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
   const [watchlistIds, setWatchlistIds] = useState([]);
-  const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null });
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         const data = await movieService.getMovies();
         setMovies(data);
       } catch {
         showNotification('Failed to fetch movies.', 'error');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -55,7 +55,7 @@ const MoviesPage = () => {
         showNotification('Movie added successfully!', 'success');
       }
       setEditingMovie(null);
-      setShowForm(false);
+      setIsFormVisible(false);
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'An error occurred.';
       showNotification(errorMsg, 'error');
@@ -64,7 +64,7 @@ const MoviesPage = () => {
 
   const handleDelete = (id, title) => {
     setConfirmConfig({
-      open: true,
+      isOpen: true,
       title: 'Delete Movie',
       message: `Are you sure you want to remove "${title}" from your movies?`,
       onConfirm: async () => {
@@ -75,7 +75,7 @@ const MoviesPage = () => {
         } catch {
           showNotification('Failed to delete movie.', 'error');
         } finally {
-          setConfirmConfig((prev) => ({ ...prev, open: false }));
+          setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
         }
       },
     });
@@ -101,25 +101,25 @@ const MoviesPage = () => {
 
   const handleEditClick = (movie) => {
     setEditingMovie(movie);
-    setShowForm(true);
+    setIsFormVisible(true);
   };
 
   const handleCancelForm = () => {
-    setShowForm(false);
+    setIsFormVisible(false);
     setEditingMovie(null);
   };
 
-  if (loading) return <Spinner />;
+  if (isLoading) return <Spinner />;
 
   return (
     <div className="container">
       <h1>Movie Collection</h1>
-      {!showForm && (
-        <button onClick={() => setShowForm(true)} className="btn" style={{ marginBottom: '2rem' }}>
+      {!isFormVisible && (
+        <button onClick={() => setIsFormVisible(true)} className="btn" style={{ marginBottom: '2rem' }}>
           Add New Movie
         </button>
       )}
-      {showForm && (
+      {isFormVisible && (
         <MovieForm
           onSubmit={handleFormSubmit}
           onCancel={handleCancelForm}
@@ -139,13 +139,13 @@ const MoviesPage = () => {
         ))}
       </div>
       <ConfirmationModal
-        open={confirmConfig.open}
+        isOpen={confirmConfig.isOpen}
         title={confirmConfig.title}
         message={confirmConfig.message}
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={confirmConfig.onConfirm}
-        onCancel={() => setConfirmConfig((prev) => ({ ...prev, open: false }))}
+        onCancel={() => setConfirmConfig((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

@@ -8,7 +8,9 @@ const LoginPage = () => {
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -18,8 +20,19 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
 
+    // Frontend validation
+    if (!form.email || !form.password) {
+      setError('Email and password are required');
+      return;
+    }
+
+    if (!emailRegex.test(form.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
       await login(form);
       navigate('/watchlist');
     } catch (err) {
@@ -30,7 +43,7 @@ const LoginPage = () => {
         'Failed to login. Please try again.';
       setError(backendMessage);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -74,8 +87,8 @@ const LoginPage = () => {
           />
         </div>
 
-        <button type="submit" className="btn btn-full-width" disabled={submitting}>
-          {submitting ? 'Logging in...' : 'Login'}
+        <button type="submit" className="btn btn-full-width" disabled={isSubmitting}>
+          {isSubmitting ? 'Logging in...' : 'Login'}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>

@@ -8,7 +8,9 @@ const RegisterPage = () => {
 
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -18,13 +20,24 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
 
+    // Frontend validation
+    if (!form.name || !form.email || !form.password) {
+      setError('Name, email, and password are required');
+      return;
+    }
+
+    if (!emailRegex.test(form.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (form.password.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
 
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
       await register(form);
       navigate('/watchlist');
     } catch (err) {
@@ -35,7 +48,7 @@ const RegisterPage = () => {
         'Failed to register. Please try again.';
       setError(backendMessage);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -92,8 +105,8 @@ const RegisterPage = () => {
           />
         </div>
 
-        <button type="submit" className="btn btn-full-width" disabled={submitting}>
-          {submitting ? 'Registering...' : 'Register'}
+        <button type="submit" className="btn btn-full-width" disabled={isSubmitting}>
+          {isSubmitting ? 'Registering...' : 'Register'}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>
