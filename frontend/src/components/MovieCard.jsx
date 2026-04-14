@@ -4,7 +4,21 @@ const MovieCard = ({ movie, onEdit, onDelete, onAddToWatchlist, isInWatchlist })
   return (
     <div className="movie-card" style={{ textAlign: 'left', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
-        <h3>{movie.title}</h3>
+        <img 
+          src={movie.posterUrl.startsWith('/uploads/') ? `http://localhost:5000${movie.posterUrl}` : (movie.posterUrl || 'https://via.placeholder.com/150x200?text=No+Poster')} 
+          alt={`${movie.title} poster`} 
+          style={{ width: '150px', height: '200px', objectFit: 'cover', marginBottom: '1rem' }} 
+        />
+        {movie.imdbId ? (
+          <a href={`https://www.imdb.com/title/${movie.imdbId}/`} target="_blank" rel="noopener noreferrer">
+            <h3>{movie.title}</h3>
+          </a>
+        ) : (
+          <h3>{movie.title}</h3>
+        )}
+        {movie.imdbRating && (
+          <p><strong>IMDb Rating:</strong> {movie.imdbRating} {movie.imdbVotes && `(${movie.imdbVotes} votes)`}</p>
+        )}
         <p><strong>Director:</strong> {movie.director}</p>
         <p><strong>Genre:</strong> {movie.genre}</p>
         <p><strong>Year:</strong> {movie.releaseYear}</p>

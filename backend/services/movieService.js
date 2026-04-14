@@ -1,10 +1,27 @@
 const Movie = require('../models/Movie');
+const { fetchOmdbData } = require('../utils/omdbHelper');
 
-const createMovie = async ({ title, director, genre, releaseYear }, userId) => {
+const createMovie = async ({ title, director, genre, releaseYear, posterUrl, imdbId, imdbRating, imdbVotes }, userId, file) => {
   if (!title || !releaseYear) {
     const error = new Error('Title and releaseYear are required.');
     error.status = 400;
     throw error;
+  }
+
+  let omdbData = null;
+  try {
+    omdbData = await fetchOmdbData(title);
+  } catch (error) {
+    // Ignore OMDB fetch errors, proceed with empty strings
+  }
+
+  let posterPath = '';
+  if (file) {
+    posterPath = '/uploads/' + file.filename;
+  } else if (omdbData && omdbData.posterUrl) {
+    posterPath = omdbData.posterUrl;
+  } else if (posterUrl) {
+    posterPath = posterUrl;
   }
 
   const movie = await Movie.create({
@@ -12,6 +29,10 @@ const createMovie = async ({ title, director, genre, releaseYear }, userId) => {
     director,
     genre,
     releaseYear,
+    posterUrl: posterPath,
+    imdbId: omdbData ? omdbData.imdbId : (imdbId || ''),
+    imdbRating: omdbData ? omdbData.imdbRating : (imdbRating || ''),
+    imdbVotes: omdbData ? omdbData.imdbVotes : (imdbVotes || ''),
     createdBy: userId,
   });
 
@@ -37,7 +58,11 @@ const getMovieById = async (movieId, userId) => {
   return movie;
 };
 
-const updateMovie = async (movieId, userId, updates) => {
+const updateMovie = async (movieId, userId, updates, file) => {
+  if (file) {
+    updates.posterUrl = '/uploads/' + file.filename;
+  }
+
   const updated = await Movie.findOneAndUpdate(
     { _id: movieId, createdBy: userId },
     updates,

@@ -41,12 +41,13 @@ const RegisterPage = () => {
       await register(form);
       navigate('/watchlist');
     } catch (err) {
+      const errorType = err?.response?.data?.type || 'Error';
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message ||
         'Failed to register. Please try again.';
-      setError(backendMessage);
+      setError(`[${errorType}] ${backendMessage}`);
     } finally {
       setIsSubmitting(false);
     }

@@ -156,6 +156,72 @@ h1, h2, h3 {
   outline: none;
   border-color: var(--accent-color);
 }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+.form-grid .form-group {
+  margin-bottom: 0;
+}
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+.form-group-with-dropdown {
+  position: relative;
+}
+.movie-card a {
+  text-decoration: none;
+  color: inherit;
+}
+.movie-card a:hover {
+  color: var(--accent-color);
+}
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  z-index: 1100;
+  box-sizing: border-box;
+}
+.suggestions-list .suggestion-item {
+  padding: 0.85rem 1rem;
+  color: var(--primary-text);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+.suggestions-list .suggestion-item:last-child {
+  border-bottom: none;
+}
+.suggestions-list .suggestion-item:hover,
+.suggestions-list .suggestion-item.selected {
+  background-color: rgba(255, 121, 0, 0.18);
+}
+.suggestion-option {
+  font-style: italic;
+  color: var(--accent-color);
+}
+.suggestion-notice {
+  color: var(--muted-text);
+  cursor: default;
+}
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* --- Buttons --- */
 .btn {

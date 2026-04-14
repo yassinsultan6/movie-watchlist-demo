@@ -11,9 +11,11 @@ export const loginUser = async (credentials) => {
   } catch (error) {
     console.error('Login error:', error);
     if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || 'Login failed');
+      const errorType = error.response.data.type || 'Error';
+      const errorMsg = error.response.data.message || 'Login failed';
+      throw new Error(`[${errorType}] ${errorMsg}`);
     } else {
-      throw new Error('Network error or no response from server');
+      throw new Error('[NetworkError] Network error or no response from server');
     }
   }
 };
@@ -29,9 +31,11 @@ export const registerUser = async (userData) => {
   } catch (error) {
     console.error('Registration error:', error);
     if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || 'Registration failed');
+      const errorType = error.response.data.type || 'Error';
+      const errorMsg = error.response.data.message || 'Registration failed';
+      throw new Error(`[${errorType}] ${errorMsg}`);
     } else {
-      throw new Error('Network error or no response from server');
+      throw new Error('[NetworkError] Network error or no response from server');
     }
   }
 };

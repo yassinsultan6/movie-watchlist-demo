@@ -35,10 +35,8 @@ const movieSchema = new Schema(
     },
     genre: {
       type: String,
-      enum: {
-        values: GENRES,
-        message: 'Genre `{VALUE}` is not supported',
-      },
+      trim: true,
+      maxlength: [50, 'Genre must be at most 50 characters'],
       default: 'Other',
     },
     releaseYear: {
@@ -50,7 +48,22 @@ const movieSchema = new Schema(
       ],
       required: [true, 'Release year is required'],
     },
-   
+    posterUrl: {
+      type: String,
+      default: '',
+    },
+    imdbId: {
+      type: String,
+      default: '',
+    },
+    imdbRating: {
+      type: String,
+      default: '',
+    },
+    imdbVotes: {
+      type: String,
+      default: '',
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',

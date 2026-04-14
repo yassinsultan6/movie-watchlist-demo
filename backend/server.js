@@ -18,6 +18,7 @@ if (!corsOrigin) {
 app.use(cors({ origin: corsOrigin, credentials: true }));
 
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);

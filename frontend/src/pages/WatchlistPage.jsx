@@ -38,8 +38,10 @@ const WatchlistPage = () => {
           await removeMovieFromWatchlist(movieId);
           setWatchlist(watchlist.filter(movie => movie._id !== movieId));
           showNotification('Movie removed from watchlist.', 'success');
-        } catch {
-          showNotification('Failed to remove movie.', 'error');
+        } catch (err) {
+          const errorType = err?.response?.data?.type || 'Error';
+          const errorMsg = err?.response?.data?.message || 'Failed to remove movie.';
+          showNotification(`[${errorType}] ${errorMsg}`, 'error');
         } finally {
           setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
         }

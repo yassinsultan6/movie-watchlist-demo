@@ -1,4 +1,7 @@
 import api from './api';
+import axios from 'axios';
+
+const OMDB_API_KEY = 'c601c766';
 
 // --- Movie CRUD Functions ---
 export const getMovies = async () => {
@@ -48,7 +51,7 @@ export const createMovie = async (movieData) => {
   } catch (error) {
     console.error('Error creating movie:', error);
     if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || 'Failed to create movie');
+      throw new Error(error.response.data.message || error.response.data.type || 'Failed to create movie');
     } else {
       throw new Error('Network error or no response from server');
     }
@@ -147,5 +150,42 @@ export const removeMovieFromWatchlist = async (movieId) => {
     } else {
       throw new Error('Network error or no response from server');
     }
+  }
+};
+// --- OMDB Functions ---
+export const searchOmdbMovies = async (query) => {
+  try {
+    const response = await axios.get(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=${OMDB_API_KEY}`);
+    if (response.data.Response === 'True') {
+      return response.data.Search || [];
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error('Error searching OMDB:', error);
+    return [];
+  }
+};
+
+export const getOmdbMovieDetails = async (imdbID) => {
+  try {
+    const response = await axios.get(`https://www.omdbapi.com/?i=${imdbID}&apikey=${OMDB_API_KEY}`);
+    if (response.data.Response === 'True') {
+      return {
+        title: response.data.Title || '',
+        director: response.data.Director.split(',')[0].trim() || '', // Take first director
+        genre: response.data.Genre.split(',')[0].trim() || '', // Take first genre
+        releaseYear: response.data.Year || '',
+        posterUrl: response.data.Poster || '',
+        imdbId: response.data.imdbID || '',
+        imdbRating: response.data.imdbRating || '',
+        imdbVotes: response.data.imdbVotes || '',
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching OMDB details:', error);
+    return null;
   }
 };

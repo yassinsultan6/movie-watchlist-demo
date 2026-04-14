@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import * as movieService from '../services/movieService';
 import NotificationContext from '../context/NotificationContext';
 import MovieCard from '../components/MovieCard';
@@ -13,6 +13,7 @@ const MoviesPage = () => {
   const [editingMovie, setEditingMovie] = useState(null);
   const [watchlistIds, setWatchlistIds] = useState([]);
   const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+  const formRef = useRef(null);
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
@@ -43,6 +44,12 @@ const MoviesPage = () => {
     fetchWatchlistIds();
   }, [showNotification]);
 
+  useEffect(() => {
+    if (editingMovie && isFormVisible && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingMovie, isFormVisible]);
+
   const handleFormSubmit = async (movieData) => {
     try {
       if (editingMovie) {
@@ -57,8 +64,9 @@ const MoviesPage = () => {
       setEditingMovie(null);
       setIsFormVisible(false);
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'An error occurred.';
-      showNotification(errorMsg, 'error');
+      const errorType = err.response?.data?.type || err.response?.status || 'Error';
+      const errorMsg = err.response?.data?.message || err.message || 'An error occurred.';
+      showNotification(`[${errorType}] ${errorMsg}`, 'error');
     }
   };
 
@@ -72,8 +80,10 @@ const MoviesPage = () => {
           await movieService.deleteMovie(id);
           setMovies(movies.filter(m => m._id !== id));
           showNotification('Movie deleted.', 'success');
-        } catch {
-          showNotification('Failed to delete movie.', 'error');
+        } catch (err) {
+          const errorType = err.response?.data?.type || err.response?.status || 'Error';
+          const errorMsg = err.response?.data?.message || 'Failed to delete movie.';
+          showNotification(`[${errorType}] ${errorMsg}`, 'error');
         } finally {
           setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
         }
@@ -94,8 +104,9 @@ const MoviesPage = () => {
       setWatchlistIds(ids);
       showNotification('Movie added to your watchlist!', 'success');
     } catch (err) {
+      const errorType = err.response?.data?.type || err.response?.status || 'Error';
       const errorMsg = err.response?.data?.message || 'Failed to add to watchlist.';
-      showNotification(errorMsg, 'error');
+      showNotification(`[${errorType}] ${errorMsg}`, 'error');
     }
   };
 
@@ -124,6 +135,7 @@ const MoviesPage = () => {
           onSubmit={handleFormSubmit}
           onCancel={handleCancelForm}
           initialData={editingMovie}
+          scrollRef={formRef}
         />
       )}
       <div className="movie-grid">
