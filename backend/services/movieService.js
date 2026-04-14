@@ -58,11 +58,7 @@ const getMovieById = async (movieId, userId) => {
   return movie;
 };
 
-const updateMovie = async (movieId, userId, updates, file) => {
-  if (file) {
-    updates.posterUrl = '/uploads/' + file.filename;
-  }
-
+const updateMovie = async (movieId, userId, updates) => {
   const updated = await Movie.findOneAndUpdate(
     { _id: movieId, createdBy: userId },
     updates,
