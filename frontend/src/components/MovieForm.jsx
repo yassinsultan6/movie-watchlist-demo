@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchOmdbMovies, getOmdbMovieDetails } from '../services/movieService';
 
-const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
+const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = {}, onServerErrorsChange }) => {
   const [movie, setMovie] = useState({
     title: '',
     director: '',
@@ -21,6 +21,29 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
   const [validationErrors, setValidationErrors] = useState({});
   const titleInputRef = useRef(null);
   const suggestionsRef = useRef(null);
+  const currentYear = new Date().getFullYear();
+  const setServerErrors = onServerErrorsChange || (() => {});
+
+  const getFieldError = (field) => validationErrors[field] || serverErrors[field];
+
+  const clearFieldError = (field) => {
+    setValidationErrors((prevErrors) => {
+      const next = { ...prevErrors };
+      delete next[field];
+      return next;
+    });
+    setServerErrors((prevErrors) => {
+      const next = { ...prevErrors };
+      delete next[field];
+      delete next.general;
+      return next;
+    });
+  };
+
+  const clearAllErrors = () => {
+    setValidationErrors({});
+    setServerErrors({});
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -38,8 +61,10 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
       setShowOptionalFields(
         !!(initialData.posterUrl || initialData.imdbId || initialData.imdbRating || initialData.imdbVotes)
       );
+      clearAllErrors();
     } else {
       setShowOptionalFields(false);
+      clearAllErrors();
     }
   }, [initialData]);
 
@@ -50,6 +75,7 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setMovie((prevMovie) => ({ ...prevMovie, [name]: value }));
+    clearFieldError(name);
   };
 
   const MIN_SUGGESTION_LENGTH = 2;
@@ -71,6 +97,7 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
   const handleTitleChange = (e) => {
     const value = e.target.value;
     setMovie((prev) => ({ ...prev, title: value }));
+    clearFieldError('title');
     clearTimeout(window.titleTimeout);
     window.titleTimeout = setTimeout(() => fetchSuggestions(value), 300);
   };
@@ -121,8 +148,10 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
     }
 
     const formData = new FormData();
-    Object.keys(movie).forEach(key => {
-      if (movie[key]) formData.append(key, movie[key]);
+    Object.keys(movie).forEach((key) => {
+      if (movie[key] !== undefined && movie[key] !== null && movie[key] !== '') {
+        formData.append(key, movie[key]);
+      }
     });
     if (posterFile) {
       formData.append('poster', posterFile);
@@ -209,6 +238,11 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
     <div className="form-container" style={{ marginBottom: '2rem' }} ref={scrollRef}>
       <form onSubmit={handleSubmit}>
         <h2>{initialData ? 'Edit Movie' : 'Add New Movie'}</h2>
+        {serverErrors.general && (
+          <div style={{ color: 'red', marginBottom: '1rem' }}>
+            {serverErrors.general}
+          </div>
+        )}
         <div className="form-group form-group-with-dropdown">
           <label>Title</label>
             <input
@@ -226,12 +260,12 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
               aria-controls="title-suggestions"
               aria-expanded={showSuggestions}
               aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
-              style={{ borderColor: validationErrors.title ? 'red' : '' }}
+              style={{ borderColor: getFieldError('title') ? 'red' : '' }}
             />
             <div className="suggestion-help" style={{ marginTop: '0.35rem', color: 'var(--muted-text)', fontSize: '0.9rem' }}>
               Type 2+ letters to see suggestions, or choose Other to enter manually.
             </div>
-            {validationErrors.title && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.title}</span>}
+            {getFieldError('title') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('title')}</span>}
             {showSuggestions && (
               <ul
                 id="title-suggestions"
@@ -284,9 +318,9 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
               value={movie.director}
               onChange={handleChange}
               required
-              style={{ borderColor: validationErrors.director ? 'red' : '' }}
+              style={{ borderColor: getFieldError('director') ? 'red' : '' }}
             />
-            {validationErrors.director && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.director}</span>}
+            {getFieldError('director') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('director')}</span>}
           </div>
           <div className="form-group">
             <label>Genre</label>
@@ -296,9 +330,9 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
               value={movie.genre}
               onChange={handleChange}
               required
-              style={{ borderColor: validationErrors.genre ? 'red' : '' }}
+              style={{ borderColor: getFieldError('genre') ? 'red' : '' }}
             />
-            {validationErrors.genre && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.genre}</span>}
+            {getFieldError('genre') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('genre')}</span>}
           </div>
           <div className="form-group">
             <label>Release Year</label>
@@ -308,9 +342,9 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
               value={movie.releaseYear}
               onChange={handleChange}
               required
-              style={{ borderColor: validationErrors.releaseYear ? 'red' : '' }}
+              style={{ borderColor: getFieldError('releaseYear') ? 'red' : '' }}
             />
-            {validationErrors.releaseYear && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.releaseYear}</span>}
+            {getFieldError('releaseYear') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('releaseYear')}</span>}
           </div>
           <div className="form-group">
             <label>Poster (optional)</label>
@@ -318,9 +352,9 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              style={{ borderColor: validationErrors.posterFile ? 'red' : '' }}
+              style={{ borderColor: getFieldError('posterFile') ? 'red' : '' }}
             />
-            {validationErrors.posterFile && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.posterFile}</span>}
+            {getFieldError('posterFile') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('posterFile')}</span>}
           </div>
           {showOptionalFields && (
             <>
@@ -336,9 +370,9 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
                   value={movie.imdbRating}
                   onChange={handleChange}
                   placeholder="0-10"
-                  style={{ borderColor: validationErrors.imdbRating ? 'red' : '' }}
+                  style={{ borderColor: getFieldError('imdbRating') ? 'red' : '' }}
                 />
-                {validationErrors.imdbRating && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.imdbRating}</span>}
+                {getFieldError('imdbRating') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('imdbRating')}</span>}
               </div>
               <div className="form-group full-width">
                 <label>IMDb Votes (optional)</label>
@@ -348,15 +382,17 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef }) => {
                   value={movie.imdbVotes}
                   onChange={handleChange}
                   placeholder="e.g., 1,234,567"
-                  style={{ borderColor: validationErrors.imdbVotes ? 'red' : '' }}
+                  style={{ borderColor: getFieldError('imdbVotes') ? 'red' : '' }}
                 />
-                {validationErrors.imdbVotes && <span style={{ color: 'red', fontSize: '0.9rem' }}>{validationErrors.imdbVotes}</span>}
+                {getFieldError('imdbVotes') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('imdbVotes')}</span>}
               </div>
             </>
           )}
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button type="submit" className="btn">Save Movie</button>
+          <button type="submit" className="btn" disabled={!movie.title.trim() || !movie.director.trim() || !movie.genre.trim() || !movie.releaseYear || Object.keys(validationErrors).length > 0 || Object.keys(serverErrors).length > 0}>
+            Save Movie
+          </button>
           <button type="button" onClick={onCancel} className="btn" style={{ backgroundColor: '#666' }}>Cancel</button>
         </div>
       </form>

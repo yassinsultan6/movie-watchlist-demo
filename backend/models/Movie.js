@@ -29,15 +29,17 @@ const movieSchema = new Schema(
     },
     director: {
       type: String,
+      required: [true, 'Director is required'],
       trim: true,
+      minlength: [1, 'Director must not be empty'],
       maxlength: [100, 'Director name must be at most 100 characters'],
-      default: 'Unknown',
     },
     genre: {
       type: String,
+      required: [true, 'Genre is required'],
       trim: true,
+      minlength: [1, 'Genre must not be empty'],
       maxlength: [50, 'Genre must be at most 50 characters'],
-      default: 'Other',
     },
     releaseYear: {
       type: Number,
@@ -59,10 +61,18 @@ const movieSchema = new Schema(
     imdbRating: {
       type: String,
       default: '',
+      validate: {
+        validator: (value) => value === '' || (!Number.isNaN(parseFloat(value)) && parseFloat(value) >= 0 && parseFloat(value) <= 10),
+        message: 'IMDb rating must be a number between 0 and 10',
+      },
     },
     imdbVotes: {
       type: String,
       default: '',
+      validate: {
+        validator: (value) => value === '' || /^[0-9,]+$/.test(value),
+        message: 'IMDb votes must be digits and commas only',
+      },
     },
     createdBy: {
       type: Schema.Types.ObjectId,

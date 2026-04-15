@@ -15,7 +15,22 @@ const errorHandler = (err, req, res, next) => {
   let type = 'Error';
   let errors = [];
 
-  if (err.name === 'ValidationError') {
+  if (err.type === 'ValidationError') {
+    statusCode = err.status || 400;
+    type = 'ValidationError';
+    message = err.message || 'Validation error';
+    errors = Array.isArray(err.errors) ? err.errors : [];
+  } else if (err.code === 'LIMIT_FILE_SIZE') {
+    statusCode = 400;
+    type = 'ValidationError';
+    message = 'Poster file must be less than 5MB';
+    errors = [{ field: 'posterFile', message: 'Poster file must be less than 5MB' }];
+  } else if (err.message && err.message.includes('Unsupported file type')) {
+    statusCode = 400;
+    type = 'ValidationError';
+    message = err.message;
+    errors = [{ field: 'posterFile', message: err.message }];
+  } else if (err.name === 'ValidationError') {
     statusCode = 400;
     type = 'ValidationError';
     message = 'Validation error';

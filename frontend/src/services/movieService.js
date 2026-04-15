@@ -51,10 +51,9 @@ export const createMovie = async (movieData) => {
   } catch (error) {
     console.error('Error creating movie:', error);
     if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || error.response.data.type || 'Failed to create movie');
-    } else {
-      throw new Error('Network error or no response from server');
+      error.message = error.response.data.message || error.response.data.type || error.message;
     }
+    throw error;
   }
 };
 
@@ -69,10 +68,9 @@ export const updateMovie = async (id, movieData) => {
   } catch (error) {
     console.error('Error updating movie:', error);
     if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || 'Failed to update movie');
-    } else {
-      throw new Error('Network error or no response from server');
+      error.message = error.response.data.message || error.message;
     }
+    throw error;
   }
 };
 

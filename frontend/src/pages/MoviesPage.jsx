@@ -13,6 +13,7 @@ const MoviesPage = () => {
   const [editingMovie, setEditingMovie] = useState(null);
   const [watchlistIds, setWatchlistIds] = useState([]);
   const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+  const [formErrors, setFormErrors] = useState({});
   const formRef = useRef(null);
   const { showNotification } = useContext(NotificationContext);
 
@@ -51,6 +52,7 @@ const MoviesPage = () => {
   }, [editingMovie, isFormVisible]);
 
   const handleFormSubmit = async (movieData) => {
+    setFormErrors({});
     try {
       if (editingMovie) {
         const updatedMovie = await movieService.updateMovie(editingMovie._id, movieData);
@@ -64,8 +66,19 @@ const MoviesPage = () => {
       setEditingMovie(null);
       setIsFormVisible(false);
     } catch (err) {
-      const errorType = err.response?.data?.type || err.response?.status || 'Error';
-      const errorMsg = err.response?.data?.message || err.message || 'An error occurred.';
+      const responseData = err.response?.data;
+      if (responseData?.errors?.length) {
+        const newErrors = responseData.errors.reduce((acc, error) => {
+          if (error.field) acc[error.field] = error.message;
+          return acc;
+        }, {});
+        setFormErrors(newErrors);
+      }
+      if (responseData?.message) {
+        setFormErrors((prev) => ({ ...prev, general: responseData.message }));
+      }
+      const errorType = responseData?.type || err.response?.status || 'Error';
+      const errorMsg = responseData?.message || err.message || 'An error occurred.';
       showNotification(`[${errorType}] ${errorMsg}`, 'error');
     }
   };
@@ -136,6 +149,8 @@ const MoviesPage = () => {
           onCancel={handleCancelForm}
           initialData={editingMovie}
           scrollRef={formRef}
+          serverErrors={formErrors}
+          onServerErrorsChange={setFormErrors}
         />
       )}
       <div className="movie-grid">
