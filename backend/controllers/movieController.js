@@ -49,3 +49,30 @@ exports.deleteMovie = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.searchOmdb = async (req, res, next) => {
+  try {
+    const query = req.query.q;
+    const results = await movieService.searchOmdbMovies(query);
+    res.status(200).json(results);
+  } catch (err) {
+    err.type = err.type || 'OmdbSearchError';
+    next(err);
+  }
+};
+
+exports.getOmdbMovieDetails = async (req, res, next) => {
+  try {
+    const imdbID = req.params.imdbID;
+    const details = await movieService.getOmdbMovieDetails(imdbID);
+    if (!details) {
+      const error = new Error('OMDB movie not found');
+      error.status = 404;
+      throw error;
+    }
+    res.status(200).json(details);
+  } catch (err) {
+    err.type = err.type || 'OmdbDetailsError';
+    next(err);
+  }
+};

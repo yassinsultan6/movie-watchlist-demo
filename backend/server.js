@@ -15,7 +15,19 @@ const corsOrigin = process.env.CORS_ORIGIN;
 if (!corsOrigin) {
   throw new Error('CORS_ORIGIN is not configured');
 }
-app.use(cors({ origin: corsOrigin, credentials: true }));
+const allowedOrigins = corsOrigin.split(',').map((origin) => origin.trim());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy does not allow access from ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));

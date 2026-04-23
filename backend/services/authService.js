@@ -1,5 +1,15 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
+const { sendVerificationEmail } = require('../utils/sendEmail');
+
+const generateVerificationToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+const hashToken = (token) => {
+  return crypto.createHash('sha256').update(token).digest('hex');
+};
 
 const generateToken = (userId) => {
   if (!process.env.JWT_SECRET) {
@@ -15,34 +25,114 @@ const generateToken = (userId) => {
 
 const registerUser = async ({ name, email, password }) => {
   try {
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists (case-insensitive)
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       const error = new Error('Email already in use');
       error.status = 409;
       throw error;
     }
 
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const verificationTokenHash = hashToken(verificationToken);
+    const verificationTokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    // Create user
     const user = await User.create({
       name,
       email,
       password,
+      isVerified: false,
+      verificationTokenHash,
+      verificationTokenExpires,
     });
 
-    const token = generateToken(user._id);
+    // Send verification email
+    let emailSendError = null;
+    try {
+      const verifyUrl = `${process.env.BACKEND_URL}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
+      await sendVerificationEmail({
+        to: email,
+        name: name,
+        verifyUrl: verifyUrl
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError.message);
+      emailSendError = emailError;
+      // Continue despite email failure - user can request email resend later
+    }
 
-    return {
-      token,
-      user: { id: user._id, name: user.name, email: user.email },
+    // Return response (no JWT before verification)
+    const response = {
+      user,
+      message: 'Registered successfully. Please verify your email.',
     };
+
+    // Include email send warning if applicable
+    if (emailSendError) {
+      response.warning = 'Registration successful but verification email could not be sent. Please try again or contact support.'
+    }
+
+    return response;
   } catch (error) {
     console.error('Error in registerUser:', error);
-    throw error; // Re-throw to let controller handle
+    throw error;
+  }
+};
+
+const verifyEmailToken = async (token, email) => {
+  try {
+    if (!token || !email) {
+      const error = new Error('Token and email are required');
+      error.status = 400;
+      throw error;
+    }
+
+    // Hash the incoming token to match stored hash
+    const tokenHash = hashToken(token);
+
+    // Find user by email, token hash, and non-expired token
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      verificationTokenHash: tokenHash,
+      verificationTokenExpires: { $gt: Date.now() },
+    }).select('+verificationTokenHash +verificationTokenExpires');
+
+    if (!user) {
+      const error = new Error('Invalid or expired verification token');
+      error.status = 400;
+      throw error;
+    }
+
+    // Mark email as verified and clear token fields
+    user.isVerified = true;
+    user.verificationTokenHash = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    // Generate JWT token after successful verification
+    const jwtToken = generateToken(user._id);
+
+    return {
+      message: 'Email verified successfully. You can now log in.',
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    };
+  } catch (error) {
+    console.error('Error in verifyEmailToken:', error);
+    throw error;
   }
 };
 
 const loginUser = async ({ email, password }) => {
   try {
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       const error = new Error('Invalid credentials');
       error.status = 401;
@@ -56,11 +146,18 @@ const loginUser = async ({ email, password }) => {
       throw error;
     }
 
+    // Check if email is verified
+    if (!user.isVerified) {
+      const error = new Error('Please verify your email before logging in.');
+      error.status = 403;
+      throw error;
+    }
+
     const token = generateToken(user._id);
 
     return {
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email, isVerified: user.isVerified },
     };
   } catch (error) {
     console.error('Error in loginUser:', error);
@@ -68,7 +165,63 @@ const loginUser = async ({ email, password }) => {
   }
 };
 
+const resendVerificationEmail = async ({ email }) => {
+  try {
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // If user not found, return generic message to avoid email enumeration
+    if (!user) {
+      return {
+        message: 'If the email exists, a verification link has been sent.',
+      };
+    }
+
+    // If already verified, return message
+    if (user.isVerified) {
+      return {
+        message: 'Email already verified. You can log in with your credentials.',
+      };
+    }
+
+    // Generate new verification token
+    const verificationToken = generateVerificationToken();
+    const verificationTokenHash = hashToken(verificationToken);
+    const verificationTokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    // Update user with new token
+    user.verificationTokenHash = verificationTokenHash;
+    user.verificationTokenExpires = verificationTokenExpires;
+    await user.save();
+
+    // Send verification email
+    let emailSendError = null;
+    try {
+      await sendVerificationEmail(
+        email,
+        user.name,
+        verificationToken
+      );
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError.message);
+      emailSendError = emailError;
+      // Continue despite email failure
+    }
+
+    // Return generic success message to avoid email enumeration
+    return {
+      message: 'If the email exists, a verification link has been sent.',
+      ...(emailSendError && { warning: 'Verification email could not be sent. Please try again.' }),
+    };
+  } catch (error) {
+    console.error('Error in resendVerificationEmail:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  verifyEmailToken,
+  resendVerificationEmail,
 };

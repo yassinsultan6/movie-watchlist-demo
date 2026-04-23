@@ -47,25 +47,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle user registration - create account and automatically log in
+  // Handle user registration - create account (no auto-login until email verified)
   const register = async (userData) => {
     const data = await registerUser(userData);
 
-    // Ensure backend returned a valid token
-    if (!data?.token) {
-      throw new Error('No token returned from backend');
-    }
-
-    // Update React state
-    setToken(data.token);
-    setUser(data.user);
-
-    // Persist to localStorage for session persistence
-    localStorage.setItem('token', data.token);
-    if (data.user) {
+    // Registration successful but no token yet - user must verify email first
+    // Store user info for reference but don't auto-login
+    if (data?.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+      // Return message to indicate verification is needed
+      return { message: data.message, user: data.user };
     } else {
-      localStorage.removeItem('user');
+      throw new Error('Registration failed - no user data returned');
     }
   };
 

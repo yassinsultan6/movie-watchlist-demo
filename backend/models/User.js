@@ -30,6 +30,20 @@ const userSchema = new Schema(
       minlength: [8, 'Password must be at least 8 characters'],
       select: false, 
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    verificationTokenExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
     watchlist: [
       {
         type: Schema.Types.ObjectId,

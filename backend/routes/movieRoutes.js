@@ -9,6 +9,8 @@ const {
   getMovieById,
   updateMovie,
   deleteMovie,
+  searchOmdb,
+  getOmdbMovieDetails,
 } = require('../controllers/movieController');
 
 const authMiddleware = require('../middleware/authMiddleware');
@@ -41,6 +43,8 @@ router.use(authMiddleware);
 
 router.post('/', upload.single('poster'), createMovie);
 router.get('/', getAllMovies);
+router.get('/omdb/search', searchOmdb);
+router.get('/omdb/:imdbID', getOmdbMovieDetails);
 router.get('/:id', getMovieById);
 router.put('/:id', upload.single('poster'), updateMovie);
 router.delete('/:id', deleteMovie);

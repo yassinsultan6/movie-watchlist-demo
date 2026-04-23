@@ -1,5 +1,5 @@
 const Movie = require('../models/Movie');
-const { fetchOmdbData } = require('../utils/omdbHelper');
+const { fetchOmdbData, searchOmdb, getOmdbMovieDetails: fetchOmdbMovieDetails } = require('../utils/omdbHelper');
 
 const currentYear = new Date().getFullYear();
 
@@ -182,10 +182,20 @@ const deleteMovie = async (movieId, userId) => {
   return deleted;
 };
 
+const searchOmdbMovies = async (query) => {
+  return searchOmdb(query);
+};
+
+const getOmdbMovieDetails = async (imdbID) => {
+  return fetchOmdbMovieDetails(imdbID);
+};
+
 module.exports = {
   createMovie,
   getAllMovies,
   getMovieById,
   updateMovie,
   deleteMovie,
+  searchOmdbMovies,
+  getOmdbMovieDetails,
 };

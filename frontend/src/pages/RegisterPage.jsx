@@ -9,6 +9,7 @@ const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -38,8 +39,11 @@ const RegisterPage = () => {
 
     try {
       setIsSubmitting(true);
-      await register(form);
-      navigate('/watchlist');
+      const result = await register(form);
+      setRegistrationSuccess(true);
+      setError('');
+      // Show success message for 3 seconds then redirect to login
+      setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       const errorType = err?.response?.data?.type || 'Error';
       const backendMessage =
@@ -61,6 +65,13 @@ const RegisterPage = () => {
           Join and start building your movie list
         </p>
 
+        {registrationSuccess && (
+          <p style={{ color: 'var(--success-color)', textAlign: 'center', marginBottom: '1rem', fontWeight: 'bold' }}>
+            ✓ Registration successful! Please check your email to verify your account.<br />
+            Redirecting to login...
+          </p>
+        )}
+
         {error && (
           <p style={{ color: 'var(--error-color)', textAlign: 'center', marginBottom: '1rem' }}>
             {error}
@@ -77,6 +88,7 @@ const RegisterPage = () => {
             onChange={handleChange}
             required
             autoComplete="name"
+            disabled={registrationSuccess}
           />
         </div>
 
@@ -90,6 +102,7 @@ const RegisterPage = () => {
             onChange={handleChange}
             required
             autoComplete="email"
+            disabled={registrationSuccess}
           />
         </div>
 
@@ -103,10 +116,11 @@ const RegisterPage = () => {
             onChange={handleChange}
             required
             autoComplete="new-password"
+            disabled={registrationSuccess}
           />
         </div>
 
-        <button type="submit" className="btn btn-full-width" disabled={isSubmitting}>
+        <button type="submit" className="btn btn-full-width" disabled={isSubmitting || registrationSuccess}>
           {isSubmitting ? 'Registering...' : 'Register'}
         </button>
 

@@ -36,7 +36,22 @@ const validateLogin = (req, res, next) => {
   next();
 };
 
+const validateResendVerification = (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Email must be valid' });
+  }
+
+  next();
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
+  validateResendVerification,
 };

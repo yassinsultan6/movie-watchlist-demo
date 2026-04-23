@@ -1,7 +1,5 @@
 import api from './api';
-import axios from 'axios';
 
-const OMDB_API_KEY = 'c601c766';
 
 // --- Movie CRUD Functions ---
 export const getMovies = async () => {
@@ -153,12 +151,10 @@ export const removeMovieFromWatchlist = async (movieId) => {
 // --- OMDB Functions ---
 export const searchOmdbMovies = async (query) => {
   try {
-    const response = await axios.get(`https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=${OMDB_API_KEY}`);
-    if (response.data.Response === 'True') {
-      return response.data.Search || [];
-    } else {
-      return [];
-    }
+    const response = await api.get('/movies/omdb/search', {
+      params: { q: query },
+    });
+    return response.data || [];
   } catch (error) {
     console.error('Error searching OMDB:', error);
     return [];
@@ -167,21 +163,8 @@ export const searchOmdbMovies = async (query) => {
 
 export const getOmdbMovieDetails = async (imdbID) => {
   try {
-    const response = await axios.get(`https://www.omdbapi.com/?i=${imdbID}&apikey=${OMDB_API_KEY}`);
-    if (response.data.Response === 'True') {
-      return {
-        title: response.data.Title || '',
-        director: response.data.Director.split(',')[0].trim() || '', // Take first director
-        genre: response.data.Genre.split(',')[0].trim() || '', // Take first genre
-        releaseYear: response.data.Year || '',
-        posterUrl: response.data.Poster || '',
-        imdbId: response.data.imdbID || '',
-        imdbRating: response.data.imdbRating || '',
-        imdbVotes: response.data.imdbVotes || '',
-      };
-    } else {
-      return null;
-    }
+    const response = await api.get(`/movies/omdb/${encodeURIComponent(imdbID)}`);
+    return response.data || null;
   } catch (error) {
     console.error('Error fetching OMDB details:', error);
     return null;
