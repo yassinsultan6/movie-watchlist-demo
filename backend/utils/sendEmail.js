@@ -31,6 +31,15 @@ if (missingEnvVars.length === 0) {
       pass: process.env.SMTP_PASS,
     },
   });
+
+  // Verify SMTP connection on startup
+  transporter.verify((error) => {
+    if (error) {
+      console.error('❌ SMTP connection failed:', error.message);
+    } else {
+      console.log('✅ SMTP connection established — email service ready');
+    }
+  });
 }
 
 /**

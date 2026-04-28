@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WatchlistPage from './pages/WatchlistPage';
 import MoviesPage from './pages/MoviesPage';
+import AdminPage from './pages/AdminPage';
 
 // Notification context is defined in a separate file
 
@@ -39,10 +40,15 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               
-              {/* Protected Routes */}
+              {/* Protected Routes — any authenticated user */}
               <Route element={<PrivateRoute />}>
                 <Route path="/watchlist" element={<WatchlistPage />} />
                 <Route path="/movies" element={<MoviesPage />} />
+              </Route>
+
+              {/* Admin Only Routes */}
+              <Route element={<PrivateRoute requiredRole="admin" />}>
+                <Route path="/admin" element={<AdminPage />} />
               </Route>
             </Routes>
           </main>

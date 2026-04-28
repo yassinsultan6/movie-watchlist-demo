@@ -11,14 +11,14 @@ const hashToken = (token) => {
   return crypto.createHash('sha256').update(token).digest('hex');
 };
 
-const generateToken = (userId) => {
+const generateToken = (userId, role = 'user') => {
   if (!process.env.JWT_SECRET) {
     const error = new Error('JWT_SECRET is not configured');
     error.status = 500;
     throw error;
   }
 
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
 };
@@ -112,7 +112,7 @@ const verifyEmailToken = async (token, email) => {
     await user.save();
 
     // Generate JWT token after successful verification
-    const jwtToken = generateToken(user._id);
+    const jwtToken = generateToken(user._id, user.role);
 
     return {
       message: 'Email verified successfully. You can now log in.',
@@ -122,6 +122,7 @@ const verifyEmailToken = async (token, email) => {
         name: user.name,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role,
       },
     };
   } catch (error) {
@@ -139,6 +140,13 @@ const loginUser = async ({ email, password }) => {
       throw error;
     }
 
+    // Google-only account — no password stored
+    if (user.authMethod === 'google' && !user.password) {
+      const error = new Error('This account uses Google login. Please sign in with Gmail.');
+      error.status = 400;
+      throw error;
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       const error = new Error('Invalid credentials');
@@ -153,11 +161,11 @@ const loginUser = async ({ email, password }) => {
       throw error;
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     return {
       token,
-      user: { id: user._id, name: user.name, email: user.email, isVerified: user.isVerified },
+      user: { id: user._id, name: user.name, email: user.email, isVerified: user.isVerified, role: user.role },
     };
   } catch (error) {
     console.error('Error in loginUser:', error);
@@ -197,11 +205,12 @@ const resendVerificationEmail = async ({ email }) => {
     // Send verification email
     let emailSendError = null;
     try {
-      await sendVerificationEmail(
-        email,
-        user.name,
-        verificationToken
-      );
+      const verifyUrl = `${process.env.BACKEND_URL}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
+      await sendVerificationEmail({
+        to: email,
+        name: user.name,
+        verifyUrl,
+      });
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError.message);
       emailSendError = emailError;
@@ -224,4 +233,5 @@ module.exports = {
   loginUser,
   verifyEmailToken,
   resendVerificationEmail,
+  generateToken,
 };

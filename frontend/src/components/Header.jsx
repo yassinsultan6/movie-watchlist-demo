@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -28,6 +28,9 @@ const Header = () => {
           <>
             <Link to="/movies" onClick={closeMenu}>Movies</Link>
             <Link to="/watchlist" onClick={closeMenu}>My Watchlist</Link>
+            {isAdmin && (
+              <Link to="/admin" onClick={closeMenu} style={{ color: 'var(--accent-color)' }}>Admin</Link>
+            )}
             <button onClick={handleLogout}>Logout ({user?.name})</button>
           </>
         ) : (

@@ -24,7 +24,7 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #f8f9fb;;
+  background-color: var(--primary-bg);
   color: var(--primary-text);
   line-height: 1.6;
 }
@@ -112,11 +112,11 @@ body {
 /* --- Typography --- */
 
 h1, h2, h3 {
-  color: #1a1a1a;
+  color: var(--primary-text);
 }
 
 .page-subtitle {
-  color: #5f6b7a;
+  color: var(--muted-text);
 }
 
 

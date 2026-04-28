@@ -25,6 +25,28 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  // Handle login from a pre-issued token (OAuth callback / email verification)
+  // Fetches full user info from the server and updates auth state
+  const loginWithToken = async (token) => {
+    localStorage.setItem('token', token);
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+    try {
+      const response = await api.get('/user/me');
+      const userData = response.data;
+      setToken(token);
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      return userData; // caller can use role for redirect
+    } catch (err) {
+      // Token may be invalid — clear everything
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete api.defaults.headers.common.Authorization;
+      throw new Error('Failed to fetch user info after login');
+    }
+  };
+
   // Handle user login - authenticate credentials and update auth state
   const login = async (credentials) => {
     const data = await loginUser(credentials);
@@ -45,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       localStorage.removeItem('user');
     }
+    return data; // caller can use user.role for redirect
   };
 
   // Handle user registration - create account (no auto-login until email verified)
@@ -74,10 +97,12 @@ export const AuthProvider = ({ children }) => {
 
   // Context value object containing auth state and methods for child components
   const value = {
-    user,           // Current user object {id, name, email}
+    user,           // Current user object {id, name, email, role}
     token,          // JWT token string
     isAuthenticated: !!token,  // Boolean indicating if user is logged in
+    isAdmin: user?.role === 'admin',  // Boolean indicating if user is admin
     login,          
+    loginWithToken,
     register,      
     logout,         
   };

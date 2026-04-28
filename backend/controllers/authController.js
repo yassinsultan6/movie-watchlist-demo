@@ -44,46 +44,22 @@ exports.login = async (req, res) => {
 };
 
 exports.verifyEmail = async (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   try {
     const { token, email } = req.query;
 
-    // Validate required parameters
-    if (!token) {
-      return res.status(400).json({
-        status: 'error',
-        statusCode: 400,
-        type: 'ValidationError',
-        message: 'Verification token is required',
-      });
-    }
-
-    if (!email) {
-      return res.status(400).json({
-        status: 'error',
-        statusCode: 400,
-        type: 'ValidationError',
-        message: 'Email is required',
-      });
+    if (!token || !email) {
+      return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Verification link is invalid or incomplete')}`);
     }
 
     // Verify email and get JWT token
-    const { message, token: jwtToken, user } = await verifyEmailToken(token, email);
+    const { token: jwtToken, user } = await verifyEmailToken(token, email);
 
-    return res.status(200).json({
-      statusCode: 200,
-      message,
-      token: jwtToken,
-      user,
-    });
+    // Redirect to frontend login page with token — LoginPage handles it just like OAuth
+    return res.redirect(`${frontendUrl}/login?token=${jwtToken}&verified=true`);
   } catch (err) {
     console.error('EMAIL VERIFICATION ERROR:', err);
-    return res.status(err.status || 500).json({
-      status: 'error',
-      statusCode: err.status || 500,
-      type: 'EmailVerificationError',
-      message: err.message || 'Server error',
-      error: err.message,
-    });
+    return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(err.message || 'Email verification failed')}`);
   }
 };
 

@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const movieRoutes = require('./routes/movieRoutes');
 const watchlistRoutes = require('./routes/watchlistRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const corsOrigin = process.env.CORS_ORIGIN;
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

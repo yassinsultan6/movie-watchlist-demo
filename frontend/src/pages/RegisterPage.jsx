@@ -1,17 +1,37 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
+
 const RegisterPage = () => {
-  const { register } = useAuth();
+  const { register, loginWithToken } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Handle OAuth callback (Google redirects to /login?token=, but keep this as fallback)
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const oauthError = searchParams.get('error');
+    if (token) {
+      setIsProcessingOAuth(true);
+      loginWithToken(token)
+        .then((userData) => navigate(userData?.role === 'admin' ? '/admin' : '/watchlist'))
+        .catch(() => {
+          setError('Login failed. Please try again.');
+          setIsProcessingOAuth(false);
+        });
+    } else if (oauthError) {
+      setError(oauthError);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -45,16 +65,22 @@ const RegisterPage = () => {
       // Show success message for 3 seconds then redirect to login
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
-      const errorType = err?.response?.data?.type || 'Error';
-      const backendMessage =
+      const rawMessage =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message ||
         'Failed to register. Please try again.';
-      setError(`[${errorType}] ${backendMessage}`);
+      // Strip [ErrorType] prefix added by frontend service layer
+      setError(rawMessage.replace(/^\[[^\]]+\]\s*/, ''));
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    setIsProcessingOAuth(true);
+    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    window.location.href = `${backendUrl}/auth/google`;
   };
 
   return (
@@ -120,8 +146,53 @@ const RegisterPage = () => {
           />
         </div>
 
-        <button type="submit" className="btn btn-full-width" disabled={isSubmitting || registrationSuccess}>
+        <button type="submit" className="btn btn-full-width" disabled={isSubmitting || registrationSuccess || isProcessingOAuth}>
           {isSubmitting ? 'Registering...' : 'Register'}
+        </button>
+
+        <div style={{ position: 'relative', margin: '1.5rem 0' }}>
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            width: '100%',
+            height: '1px',
+            backgroundColor: 'var(--border-color)',
+            transform: 'translateY(-50%)',
+          }} />
+          <div style={{
+            position: 'relative',
+            textAlign: 'center',
+            backgroundColor: 'var(--primary-bg)',
+            display: 'inline-block',
+            width: '100%',
+          }}>
+            <span style={{ padding: '0 10px', color: 'var(--muted-text)' }}>or</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="btn btn-full-width"
+          onClick={handleGoogleSignup}
+          disabled={isProcessingOAuth || isSubmitting || registrationSuccess}
+          style={{
+            backgroundColor: 'var(--secondary-bg)',
+            border: '2px solid var(--border-color)',
+            color: 'var(--primary-text)',
+            cursor: isProcessingOAuth ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isProcessingOAuth ? (
+            <>
+              <span style={{ marginRight: '0.5rem' }}>🔄</span>
+              Redirecting to Google...
+            </>
+          ) : (
+            <>
+              <span style={{ marginRight: '0.5rem' }}>🔐</span>
+              Sign up with Gmail
+            </>
+          )}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '1rem' }}>
