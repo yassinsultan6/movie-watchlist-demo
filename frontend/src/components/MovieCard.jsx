@@ -22,28 +22,32 @@ const MovieCard = ({ movie, onEdit, onDelete, onAddToWatchlist, isInWatchlist })
         <p><strong>Director:</strong> {movie.director}</p>
         <p><strong>Genre:</strong> {movie.genre}</p>
         <p><strong>Year:</strong> {movie.releaseYear}</p>
+        {movie.streamingTimes && movie.streamingTimes.length > 0 && (
+          <div style={{ marginTop: '0.5rem' }}>
+            <strong>Streaming Times:</strong>
+            <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+              {movie.streamingTimes.map((t, i) => (
+                <li key={i} style={{ listStyleType: 'disc' }}>{new Date(t).toLocaleString()}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div>
-        <button 
-          onClick={() => onAddToWatchlist(movie._id)} 
-          className="btn" 
-          style={{
-            width: '100%',
-            marginTop: '1rem',
-            backgroundColor: isInWatchlist ? '#999' : '#03dac6',
-            color: '#000',
-            cursor: isInWatchlist ? 'not-allowed' : 'pointer',
-          }}
+        <button
+          onClick={() => onAddToWatchlist(movie._id)}
+          className="btn btn-full-width"
+          style={{ marginTop: '1rem' }}
           disabled={isInWatchlist}
           aria-pressed={isInWatchlist}
         >
           {isInWatchlist ? '✓ Added to Watchlist' : 'Add to Watchlist'}
         </button>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
-          <button onClick={() => onEdit(movie)} className="btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>
+          <button onClick={() => onEdit(movie)} className="btn btn-sm">
             Edit
           </button>
-          <button onClick={() => onDelete(movie._id)} className="btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', backgroundColor: 'var(--error-color)' }}>
+          <button onClick={() => onDelete(movie._id)} className="btn btn-danger btn-sm">
             Delete
           </button>
         </div>

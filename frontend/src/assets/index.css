@@ -1,19 +1,26 @@
 :root {
-  --primary-bg: #0f1115;
-  --secondary-bg: #171a21;
-  --primary-text: #f2f2f2;
-  --muted-text: #b5b5b5;
+  /* ── Orange Design System – dark theme ──────────────────────── */
+  /* Backgrounds */
+  --primary-bg:    #141414;  /* ods-gray-900  – body bg dark      */
+  --secondary-bg:  #333;     /* ods-gray-800  – secondary bg dark  */
 
-  /* Orange company colors */
-  --accent-color: #ff7900;
-  --accent-hover: #ff9a3d;
-  --accent-dark: #c85f00;
+  /* Text */
+  --primary-text:  #fff;     /* ods-white-100 – body color dark    */
+  --muted-text:    #999;     /* ods-gray-500  – secondary color dk */
 
-  --success-color: #00c853;
-  --error-color: #ff5252;
+  /* Orange brand primary */
+  --accent-color:  #ff7900;  /* ods-orange-100 – primary dark      */
+  --accent-hover:  #f16e00;  /* ods-orange-200 – darker orange     */
+  --accent-dark:   #f16e00;  /* ods-orange-200                     */
 
-  --border-color: #2b2f38;
-  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  /* Functional colors – dark */
+  --success-color: #66cc66;  /* ods-forest-100 – success dark      */
+  --error-color:   #ff4d4d;  /* ods-fire-100   – danger dark       */
+
+  /* Borders */
+  --border-color:  #666;     /* ods-gray-600   – subtle border dk  */
+
+  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -23,10 +30,12 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Helvetica Neue is the Orange brand typeface */
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background-color: var(--primary-bg);
   color: var(--primary-text);
-  line-height: 1.6;
+  line-height: 1.5;
+  letter-spacing: -0.00625rem; /* Orange body copy letter-spacing */
 }
 
 
@@ -40,9 +49,9 @@ body {
 
 /* --- Navbar --- */
 .app-header {
-  background: rgba(23, 26, 33, 0.95);
+  background: rgba(20, 20, 20, 0.97); /* #141414 base */
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--accent-color); /* Orange brand bottom border */
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -109,11 +118,19 @@ body {
   }
 }
 
-/* --- Typography --- */
+/* --- Typography (Orange Design System) --- */
 
-h1, h2, h3 {
+h1, h2, h3, h4, h5, h6 {
   color: var(--primary-text);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.0625rem; /* Orange DS heading letter-spacing */
 }
+
+h2 { letter-spacing: -0.05rem; }
+h3 { letter-spacing: -0.03125rem; }
+h4 { letter-spacing: -0.025rem; }
+h5, h6 { letter-spacing: -0.0125rem; }
 
 .page-subtitle {
   color: var(--muted-text);
@@ -126,7 +143,7 @@ h1, h2, h3 {
   margin: 2rem auto;
   padding: 2rem;
   background-color: var(--secondary-bg);
-  border-radius: 12px;
+  border-radius: 0; /* Orange DS – square corners */
   border: 1px solid var(--border-color);
   box-shadow: var(--card-shadow);
 }
@@ -146,11 +163,12 @@ h1, h2, h3 {
 .form-group input {
   width: 100%;
   padding: 0.8rem;
-  background-color: #0f1115;
+  background-color: var(--primary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 0; /* Orange DS – square corners on inputs */
   color: var(--primary-text);
   font-size: 1rem;
+  font-family: inherit;
 }
 .form-group input:focus {
   outline: none;
@@ -190,8 +208,8 @@ h1, h2, h3 {
   overflow-y: auto;
   background-color: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  border-radius: 0; /* Orange DS – square corners */
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   z-index: 1100;
   box-sizing: border-box;
 }
@@ -228,18 +246,78 @@ h1, h2, h3 {
   display: inline-block;
   padding: 0.8rem 1.2rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0; /* Orange DS – square corners on buttons */
   background-color: var(--accent-color);
   color: #000;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700; /* Orange DS – bold button labels */
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+  transition: background-color 0.2s ease-in-out;
 }
 .btn:hover {
   background-color: var(--accent-hover);
-  transform: translateY(-2px);
+}
+/* Compact / small buttons for inline controls */
+.btn-sm {
+  padding: 0.28rem 0.6rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1;
+  min-height: 34px;
+}
+.btn-sm:hover { background-color: var(--accent-hover); }
+.btn-ghost {
+  background: transparent;
+  color: var(--primary-text);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.btn-danger.btn-sm {
+  background-color: var(--error-color);
+  color: var(--primary-text);
+}
+
+/* Ensure small button styles override base .btn when both classes are present */
+.btn.btn-sm {
+  padding: 0.36rem 0.65rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1;
+  min-height: 32px;
+}
+.btn.btn-sm:hover { background-color: var(--accent-hover); transform: none; }
+.btn.btn-danger.btn-sm {
+  background-color: var(--error-color);
+  color: var(--primary-text);
+}
+
+/* small outline variant */
+.btn.btn-sm.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+}
+.btn.btn-sm.btn-outline:hover {
+  background: var(--accent-color);
+  color: #000;
+  transform: none;
+}
+
+/* Disabled button state */
+.btn[disabled],
+.btn:disabled {
+  background-color: #666;
+  color: var(--primary-text);
+  cursor: not-allowed;
+  opacity: 0.95;
 }
 .btn-outline {
   border: 1px solid var(--accent-color);
@@ -261,9 +339,9 @@ h1, h2, h3 {
   gap: 1.5rem;
 }
 .movie-card {
-  background: linear-gradient(180deg, #171a21, #14161c);
+  background: var(--secondary-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 0; /* Orange DS – square corners */
   box-shadow: var(--card-shadow);
   overflow: hidden;
   display: flex;
@@ -314,7 +392,7 @@ h1, h2, h3 {
 .notification {
   padding: 1rem 1.5rem;
   margin-bottom: 1rem;
-  border-radius: 8px;
+  border-radius: 0; /* Orange DS – square corners */
   color: #000;
   box-shadow: var(--card-shadow);
   display: flex;
@@ -350,8 +428,9 @@ h1, h2, h3 {
   padding: 1rem;
 }
 .confirm-modal {
-  background: var(--primary-bg);
-  border-radius: 18px;
+  background: var(--secondary-bg);
+  border-radius: 0; /* Orange DS – square corners */
+  border: 1px solid var(--border-color);
   box-shadow: var(--card-shadow);
   max-width: 420px;
   width: 100%;
@@ -388,11 +467,11 @@ h1, h2, h3 {
   text-align: center;
   padding: 3rem;
   background-color: var(--secondary-bg);
-  border-radius: 12px;
+  border-radius: 0; /* Orange DS – square corners */
   border: 1px solid var(--border-color);
 }
 .welcome-text {
-  color: #5f6b7a; /* change to any color you want */
+  color: var(--muted-text); /* ods-gray-500 – Orange DS secondary color */
 }
 
 /* --- Animations --- */

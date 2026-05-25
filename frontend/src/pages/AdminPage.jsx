@@ -138,7 +138,7 @@ const AdminPage = () => {
                   <td style={{ padding: '0.75rem' }}>{u.name}</td>
                   <td style={{ padding: '0.75rem', fontSize: '0.9rem' }}>{u.email}</td>
                   <td style={{ padding: '0.75rem' }}>
-                    <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px', background: u.authMethod === 'google' ? '#4285f420' : '#aaa2', color: u.authMethod === 'google' ? '#4285f4' : 'inherit' }}>
+                    <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '0', background: u.authMethod === 'google' ? 'rgba(66,133,244,0.12)' : 'rgba(153,153,153,0.12)', color: u.authMethod === 'google' ? '#4285f4' : 'var(--muted-text)' }}>
                       {u.authMethod}
                     </span>
                   </td>
@@ -147,11 +147,11 @@ const AdminPage = () => {
                     <span style={{
                       display: 'inline-block',
                       padding: '3px 10px',
-                      borderRadius: '12px',
+                      borderRadius: '0',
                       fontSize: '0.8rem',
                       fontWeight: 'bold',
-                      background: u.role === 'admin' ? '#f59e0b22' : '#6366f122',
-                      color: u.role === 'admin' ? '#f59e0b' : '#6366f1',
+                      background: u.role === 'admin' ? 'rgba(255,121,0,0.15)' : 'rgba(153,153,153,0.12)',
+                      color: u.role === 'admin' ? 'var(--accent-color)' : 'var(--muted-text)',
                     }}>
                       {u.role === 'admin' ? '⭐ Admin' : '👤 User'}
                     </span>
@@ -170,11 +170,12 @@ const AdminPage = () => {
                         style={{
                           fontSize: '0.8rem',
                           padding: '4px 12px',
-                          background: '#f59e0b',
-                          color: '#fff',
+                          background: 'var(--accent-color)',
+                          color: '#000',
                           border: 'none',
-                          borderRadius: '6px',
+                          borderRadius: '0',
                           cursor: 'pointer',
+                          fontWeight: '700',
                         }}
                       >
                         ⭐ Make Admin
@@ -185,11 +186,12 @@ const AdminPage = () => {
                         style={{
                           fontSize: '0.8rem',
                           padding: '4px 12px',
-                          background: '#6366f1',
-                          color: '#fff',
+                          background: 'var(--border-color)',
+                          color: 'var(--primary-text)',
                           border: 'none',
-                          borderRadius: '6px',
+                          borderRadius: '0',
                           cursor: 'pointer',
+                          fontWeight: '700',
                         }}
                       >
                         Revoke Admin
@@ -203,7 +205,7 @@ const AdminPage = () => {
 
           {/* Watchlist Modal */}
           {selectedUser && (
-            <div style={{ background: 'var(--secondary-bg)', border: '2px solid var(--border-color)', borderRadius: '12px', padding: '1.5rem' }}>
+            <div style={{ background: 'var(--secondary-bg)', border: '2px solid var(--accent-color)', borderRadius: '0', padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h2 style={{ margin: 0 }}>{selectedUser.name}&apos;s Watchlist</h2>
                 <button
@@ -220,9 +222,9 @@ const AdminPage = () => {
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
                   {watchlistData.watchlist.map((movie) => (
-                    <li key={movie._id} style={{ background: 'var(--primary-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <li key={movie._id} style={{ background: 'var(--primary-bg)', padding: '1rem', borderRadius: '0', border: '1px solid var(--border-color)' }}>
                       {movie.posterUrl && (
-                        <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '4px', marginBottom: '0.5rem' }} />
+                        <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '0', marginBottom: '0.5rem' }} />
                       )}
                       <p style={{ fontWeight: 'bold', margin: '0 0 4px 0', fontSize: '0.9rem' }}>{movie.title}</p>
                       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--muted-text)' }}>{movie.releaseYear} • {movie.genre}</p>
@@ -257,7 +259,7 @@ const AdminPage = () => {
                 <td style={{ padding: '0.75rem' }}>
                   <button
                     onClick={() => handleDeleteMovie(m._id)}
-                    style={{ background: 'var(--error-color)', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem' }}
+                    style={{ background: 'var(--error-color)', color: '#000', border: 'none', borderRadius: '0', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}
                   >
                     Delete
                   </button>

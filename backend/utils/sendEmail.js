@@ -155,7 +155,60 @@ async function sendVerificationEmail({ to, name, verifyUrl }) {
   }
 }
 
+/**
+ * Send streaming reminder email
+ * @param {Object} options
+ * @param {string} options.to - recipient email
+ * @param {string} options.name - recipient name
+ * @param {string} options.movieTitle - movie title
+ * @param {Date|string} options.streamingTime - streaming time (Date or ISO string)
+ * @param {string} [options.movieLink] - optional link to the movie (IMDB)
+ */
+async function sendStreamingReminderEmail({ to, name, movieTitle, streamingTime, movieLink }) {
+  if (!transporter) {
+    console.warn(`⚠️  Email transporter not configured. Reminder email not sent to: ${to}`);
+    return false;
+  }
+
+  if (!to || !movieTitle || !streamingTime) {
+    const error = new Error('Missing required parameters: to, movieTitle, streamingTime');
+    error.status = 400;
+    throw error;
+  }
+
+  const time = (streamingTime instanceof Date) ? streamingTime : new Date(streamingTime);
+  const formatted = time.toLocaleString();
+
+  const mailOptions = {
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `Reminder: ${movieTitle} starts in 15 minutes`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2>Upcoming streaming reminder</h2>
+        <p>Hi ${name || 'there'},</p>
+        <p>This is a reminder that <strong>${movieTitle}</strong> will start at <strong>${formatted}</strong> (in approximately 15 minutes).</p>
+        ${movieLink ? `<p><a href="${movieLink}">View on IMDB</a></p>` : ''}
+        <p>If you no longer want reminders for this movie, remove it from your watchlist.</p>
+        <hr />
+        <p style="font-size:12px;color:#666;">Movie Watchlist</p>
+      </div>
+    `,
+    text: `Reminder: ${movieTitle} at ${formatted}`,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✓ Reminder email sent to ${to} for ${movieTitle} at ${formatted}. Message ID: ${info.messageId}`);
+    return true;
+  } catch (err) {
+    console.error(`✗ Error sending reminder to ${to}:`, err.message);
+    throw err;
+  }
+}
+
 module.exports = {
   sendVerificationEmail,
+  sendStreamingReminderEmail,
   transporter,
 };

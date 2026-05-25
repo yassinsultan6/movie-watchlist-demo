@@ -13,6 +13,8 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
     imdbVotes: '',
   });
   const [posterFile, setPosterFile] = useState(null);
+  // streamingTimes is an array of objects { date: 'YYYY-MM-DD', time: 'HH:mm' }
+  const [streamingTimes, setStreamingTimes] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
@@ -57,6 +59,22 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
         imdbRating: initialData.imdbRating || '',
         imdbVotes: initialData.imdbVotes || '',
       });
+      // Load streaming times into separate date/time inputs
+      const toDateParts = (iso) => {
+        if (!iso) return { date: '', time: '' };
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return { date: '', time: '' };
+        const pad = (n) => String(n).padStart(2, '0');
+        const YYYY = d.getFullYear();
+        const MM = pad(d.getMonth() + 1);
+        const DD = pad(d.getDate());
+        const hh = pad(d.getHours());
+        const mm = pad(d.getMinutes());
+        return { date: `${YYYY}-${MM}-${DD}`, time: `${hh}:${mm}` };
+      };
+      setStreamingTimes(Array.isArray(initialData.streamingTimes)
+        ? initialData.streamingTimes.map((t) => toDateParts(t))
+        : []);
       // Show optional fields if editing and any optional field has value
       setShowOptionalFields(
         !!(initialData.posterUrl || initialData.imdbId || initialData.imdbRating || initialData.imdbVotes)
@@ -65,6 +83,7 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
     } else {
       setShowOptionalFields(false);
       clearAllErrors();
+      setStreamingTimes([]);
     }
   }, [initialData]);
 
@@ -156,6 +175,19 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
     if (posterFile) {
       formData.append('poster', posterFile);
     }
+    // Append streaming times (combine date + time -> ISO strings)
+    if (streamingTimes && streamingTimes.length) {
+      streamingTimes.forEach(({ date, time }) => {
+        if (date && date.trim() !== '' && time && time.trim() !== '') {
+          try {
+            const iso = new Date(`${date}T${time}`).toISOString();
+            formData.append('streamingTimes', iso);
+          } catch (err) {
+            // ignore invalid date here; validation should have caught it
+          }
+        }
+      });
+    }
     onSubmit(formData);
   };
 
@@ -214,6 +246,26 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
       }
     }
 
+    // Validate streaming times if any (each entry must have both date and time)
+    if (streamingTimes && streamingTimes.length) {
+      for (let i = 0; i < streamingTimes.length; i += 1) {
+        const { date, time } = streamingTimes[i] || {};
+        if ((!date || date.trim() === '') && (!time || time.trim() === '')) {
+          // empty entry is allowed (user may add and leave it), skip
+          continue;
+        }
+        if (!date || date.trim() === '' || !time || time.trim() === '') {
+          errors.streamingTimes = 'Each streaming time requires both a date and a time';
+          break;
+        }
+        const dt = new Date(`${date}T${time}`);
+        if (isNaN(dt.getTime())) {
+          errors.streamingTimes = 'One or more streaming times are invalid';
+          break;
+        }
+      }
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -233,6 +285,30 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const addStreamingTime = () => {
+    setStreamingTimes((prev) => [...prev, { date: '', time: '' }]);
+  };
+
+  const updateStreamingTime = (index, field, value) => {
+    setStreamingTimes((prev) => prev.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
+    clearFieldError('streamingTimes');
+  };
+
+  const removeStreamingTime = (index) => {
+    setStreamingTimes((prev) => prev.filter((_, i) => i !== index));
+    clearFieldError('streamingTimes');
+  };
+
+  const setQuickDateTime = (index, daysOffset = 0, hour = 20, minute = 0) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysOffset);
+    const pad = (n) => String(n).padStart(2, '0');
+    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const time = `${pad(hour)}:${pad(minute)}`;
+    setStreamingTimes((prev) => prev.map((t, i) => (i === index ? { ...t, date, time } : t)));
+    clearFieldError('streamingTimes');
+  };
 
   return (
     <div className="form-container" style={{ marginBottom: '2rem' }} ref={scrollRef}>
@@ -356,6 +432,36 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
             />
             {getFieldError('posterFile') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('posterFile')}</span>}
           </div>
+          {/* Streaming times visible by default */}
+          <div className="form-group full-width">
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span>Streaming Times (optional)</span>
+              <button type="button" onClick={addStreamingTime} className="btn btn-sm btn-outline">Add Time</button>
+            </label>
+                {streamingTimes.length === 0 && <div style={{ color: 'var(--muted-text)', marginBottom: '0.5rem' }}>Add one or more planned streaming/watch times.</div>}
+                {streamingTimes.map((st, idx) => (
+                  <div key={`st-${idx}`} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                    <input
+                      type="date"
+                      value={st.date || ''}
+                      onChange={(e) => updateStreamingTime(idx, 'date', e.target.value)}
+                      style={{ flex: '0 0 160px', borderColor: getFieldError('streamingTimes') ? 'red' : '' }}
+                    />
+                    <input
+                      type="time"
+                      value={st.time || ''}
+                      onChange={(e) => updateStreamingTime(idx, 'time', e.target.value)}
+                      style={{ flex: '0 0 120px', borderColor: getFieldError('streamingTimes') ? 'red' : '' }}
+                    />
+                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                      <button type="button" onClick={() => setQuickDateTime(idx, 0)} className="btn btn-sm btn-outline">Today</button>
+                      <button type="button" onClick={() => setQuickDateTime(idx, 1)} className="btn btn-sm btn-outline">Tomorrow</button>
+                    </div>
+                    <button type="button" onClick={() => removeStreamingTime(idx)} className="btn btn-danger btn-sm">Remove</button>
+                  </div>
+                ))}
+                {getFieldError('streamingTimes') && <span style={{ color: 'red', fontSize: '0.9rem' }}>{getFieldError('streamingTimes')}</span>}
+          </div>
           {showOptionalFields && (
             <>
               <div className="form-group">
@@ -393,7 +499,7 @@ const MovieForm = ({ onSubmit, onCancel, initialData, scrollRef, serverErrors = 
           <button type="submit" className="btn" disabled={!movie.title.trim() || !movie.director.trim() || !movie.genre.trim() || !movie.releaseYear || Object.keys(validationErrors).length > 0 || Object.keys(serverErrors).length > 0}>
             Save Movie
           </button>
-          <button type="button" onClick={onCancel} className="btn" style={{ backgroundColor: '#666' }}>Cancel</button>
+          <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
         </div>
       </form>
     </div>

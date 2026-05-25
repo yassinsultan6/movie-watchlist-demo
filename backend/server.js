@@ -64,6 +64,16 @@ mongoose
   .then(() => {
     console.log('MongoDB connected');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    // Start reminder job (sends emails ~15 minutes before streaming times)
+    try {
+      // lazy require so mongoose models are registered
+      const reminderJob = require('./jobs/reminderJob');
+      reminderJob.start();
+      console.log('Reminder job started');
+    } catch (err) {
+      console.error('Failed to start reminder job:', err.message);
+    }
   })
   .catch((err) => {
     console.error('Failed to connect to MongoDB:', err);

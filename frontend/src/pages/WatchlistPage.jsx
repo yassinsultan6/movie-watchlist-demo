@@ -64,10 +64,11 @@ const WatchlistPage = () => {
                 <p><strong>Genre:</strong> {movie.genre}</p>
                 <p><strong>Year:</strong> {movie.releaseYear}</p>
               </div>
-              <button 
-                onClick={() => handleRemove(movie._id, movie.title)} 
-                className="btn" 
-                style={{ width: '100%', marginTop: '1rem', backgroundColor: 'var(--error-color)' }}>
+              <button
+                onClick={() => handleRemove(movie._id, movie.title)}
+                className="btn btn-danger btn-full-width"
+                style={{ marginTop: '1rem' }}
+              >
                 Remove
               </button>
             </div>

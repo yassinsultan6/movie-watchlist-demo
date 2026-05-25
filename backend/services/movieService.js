@@ -20,6 +20,7 @@ const validateMoviePayload = (payload = {}, file) => {
     releaseYear,
     imdbRating,
     imdbVotes,
+    streamingTimes,
   } = payload;
 
   if (!title || typeof title !== 'string' || !title.trim()) {
@@ -59,6 +60,24 @@ const validateMoviePayload = (payload = {}, file) => {
     }
   }
 
+  // Validate optional streamingTimes (array of date/time strings)
+  if (streamingTimes !== undefined && streamingTimes !== null) {
+    const items = Array.isArray(streamingTimes) ? streamingTimes : (typeof streamingTimes === 'string' ? (streamingTimes.trim() === '' ? [] : [streamingTimes]) : []);
+    if (items.length) {
+      for (const t of items) {
+        if (!t || `${t}`.trim() === '') {
+          errors.push({ field: 'streamingTimes', message: 'Streaming times must not be empty' });
+          break;
+        }
+        const dt = new Date(t);
+        if (Number.isNaN(dt.getTime())) {
+          errors.push({ field: 'streamingTimes', message: 'Each streaming time must be a valid date-time' });
+          break;
+        }
+      }
+    }
+  }
+
   if (file) {
     const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validImageTypes.includes(file.mimetype)) {
@@ -74,8 +93,8 @@ const validateMoviePayload = (payload = {}, file) => {
   }
 };
 
-const createMovie = async ({ title, director, genre, releaseYear, posterUrl, imdbId, imdbRating, imdbVotes }, userId, file) => {
-  validateMoviePayload({ title, director, genre, releaseYear, imdbRating, imdbVotes }, file);
+const createMovie = async ({ title, director, genre, releaseYear, posterUrl, imdbId, imdbRating, imdbVotes, streamingTimes }, userId, file) => {
+  validateMoviePayload({ title, director, genre, releaseYear, imdbRating, imdbVotes, streamingTimes }, file);
 
   let omdbData = null;
   try {
@@ -93,6 +112,13 @@ const createMovie = async ({ title, director, genre, releaseYear, posterUrl, imd
     posterPath = posterUrl;
   }
 
+  // Parse streaming times to Date objects (if provided)
+  let streamingDates = [];
+  if (streamingTimes) {
+    const items = Array.isArray(streamingTimes) ? streamingTimes : [streamingTimes];
+    streamingDates = items.map((t) => new Date(t));
+  }
+
   const movie = await Movie.create({
     title,
     director,
@@ -102,6 +128,7 @@ const createMovie = async ({ title, director, genre, releaseYear, posterUrl, imd
     imdbId: omdbData ? omdbData.imdbId : (imdbId || ''),
     imdbRating: omdbData ? omdbData.imdbRating : (imdbRating || ''),
     imdbVotes: omdbData ? omdbData.imdbVotes : (imdbVotes || ''),
+    streamingTimes: streamingDates,
     createdBy: userId,
   });
 
@@ -139,22 +166,41 @@ const updateMovie = async (movieId, userId, updates = {}, file) => {
     imdbId,
     imdbRating,
     imdbVotes,
+    streamingTimes,
   } = updates;
 
   const posterPath = file ? '/uploads/' + file.filename : (posterUrl || '');
 
+  // Prepare streaming times update if provided
+  let streamingDatesForUpdate;
+  if (Object.prototype.hasOwnProperty.call(updates, 'streamingTimes')) {
+    if (!streamingTimes) {
+      streamingDatesForUpdate = [];
+    } else if (Array.isArray(streamingTimes)) {
+      streamingDatesForUpdate = streamingTimes.map((t) => new Date(t));
+    } else {
+      streamingDatesForUpdate = [new Date(streamingTimes)];
+    }
+  }
+
+  const updateObj = {
+    title,
+    director,
+    genre,
+    releaseYear: parseInt(releaseYear, 10),
+    posterUrl: posterPath,
+    imdbId: imdbId || '',
+    imdbRating: imdbRating || '',
+    imdbVotes: imdbVotes || '',
+  };
+
+  if (streamingDatesForUpdate !== undefined) {
+    updateObj.streamingTimes = streamingDatesForUpdate;
+  }
+
   const updated = await Movie.findOneAndUpdate(
     { _id: movieId, createdBy: userId },
-    {
-      title,
-      director,
-      genre,
-      releaseYear: parseInt(releaseYear, 10),
-      posterUrl: posterPath,
-      imdbId: imdbId || '',
-      imdbRating: imdbRating || '',
-      imdbVotes: imdbVotes || '',
-    },
+    updateObj,
     { new: true, runValidators: true }
   );
 

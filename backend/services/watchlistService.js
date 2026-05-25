@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Reminder = require('../models/Reminder');
 
 const addToWatchlist = async (userId, movieId) => {
   if (!movieId) {
@@ -19,6 +20,9 @@ const addToWatchlist = async (userId, movieId) => {
     throw error;
   }
 
+  // Cleanup any future reminders for this user/movie
+  _cleanupFutureReminders(userId, movieId).catch(() => {});
+
   return user.watchlist;
 };
 
@@ -37,6 +41,18 @@ const removeFromWatchlist = async (userId, movieId) => {
 
   return user.watchlist;
 };
+
+// When a user removes a movie from their watchlist, remove any future scheduled reminders
+// so they won't receive further emails for that movie.
+const _cleanupFutureReminders = async (userId, movieId) => {
+  try {
+    await Reminder.deleteMany({ user: userId, movie: movieId, streamingTime: { $gt: new Date() } });
+  } catch (err) {
+    // Log and continue; failures here shouldn't block the main operation
+    console.error('Failed to cleanup future reminders:', err.message);
+  }
+};
+
 
 const getWatchlist = async (userId) => {
   const user = await User.findById(userId).populate('watchlist');

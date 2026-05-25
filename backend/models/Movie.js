@@ -54,6 +54,10 @@ const movieSchema = new Schema(
       type: String,
       default: '',
     },
+    streamingTimes: {
+      type: [Date],
+      default: [],
+    },
     imdbId: {
       type: String,
       default: '',

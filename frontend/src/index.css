@@ -1,19 +1,20 @@
 :root {
-  --primary-bg: #0f1115;
-  --secondary-bg: #171a21;
-  --primary-text: #f2f2f2;
-  --muted-text: #b5b5b5;
+  /* --- Orange Design System – dark theme ----------------------- */
+  --primary-bg:    #141414;  /* ods-gray-900  – body bg dark      */
+  --secondary-bg:  #333;     /* ods-gray-800  – secondary bg dark  */
 
-  /* Orange company colors */
-  --accent-color: #ff7900;
-  --accent-hover: #ff9a3d;
-  --accent-dark: #c85f00;
+  --primary-text:  #fff;     /* ods-white-100 – body color dark    */
+  --muted-text:    #999;     /* ods-gray-500  – secondary color dk */
 
-  --success-color: #00c853;
-  --error-color: #ff5252;
+  --accent-color:  #ff7900;  /* ods-orange-100 – primary dark      */
+  --accent-hover:  #f16e00;  /* ods-orange-200 – darker orange     */
+  --accent-dark:   #f16e00;
 
-  --border-color: #2b2f38;
-  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  --success-color: #66cc66;  /* ods-forest-100 – success dark      */
+  --error-color:   #ff4d4d;  /* ods-fire-100   – danger dark       */
+
+  --border-color:  #666;     /* ods-gray-600   – subtle border dk  */
+  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -23,10 +24,11 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background-color: var(--primary-bg);
   color: var(--primary-text);
-  line-height: 1.6;
+  line-height: 1.5;
+  letter-spacing: -0.00625rem;
 }
 
 /* --- Layout --- */
